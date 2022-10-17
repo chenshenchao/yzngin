@@ -1,19 +1,31 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using YzNgin;
 using YzNgin.Demo;
+using YzNgin.Demo.Services;
 
-var ioc = new ServiceCollection();
-ioc.AddSingleton<IYzClientManager>(op =>
-{
-    return new ClientManager();
-});
+var host = Host.CreateDefaultBuilder(args)
+    .ConfigureHostConfiguration(cd =>
+    {
+        cd.SetBasePath(Directory.GetCurrentDirectory());
+        cd.AddEnvironmentVariables(prefix: "YZ_ROBOT_");
+    })
+    .ConfigureLogging((hc, cl) =>
+    {
+        cl.AddFile(hc.Configuration.GetSection("LoggingFile"));
+        cl.AddConsole();
+        cl.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Warning);
+    })
+    .ConfigureServices((hc, services) =>
+    {
+        services.AddSingleton<IYzClientManager>(op => new ClientManager());
+        services.AddSingleton<IYzPackCoder>(op => new YzPackJsonCoder());
+        services.AddHostedService<TcpService>();
+        services.AddHostedService<UdpService>();
+    })
+    .UseConsoleLifetime()
+    .Build();
 
-ioc.AddSingleton(op =>
-{
-    var cm = op.GetRequiredService<IYzClientManager>();
-    return new YzServer(cm, null, 44444);
-});
-
-var provider = ioc.BuildServiceProvider();
-var server = provider.GetRequiredService<YzServer>();
-server.Serve().Wait();
+host.Run();

@@ -7,7 +7,10 @@ using System.Threading.Tasks;
 
 namespace YzNgin.Demo;
 
-internal class ClientManager : IYzClientManager
+/// <summary>
+/// 客户端管理
+/// </summary>
+public class ClientManager : IYzClientManager
 {
     private ConcurrentDictionary<Socket, Client> clients;
 

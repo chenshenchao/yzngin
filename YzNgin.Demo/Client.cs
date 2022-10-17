@@ -3,7 +3,7 @@ using System.Net.Sockets;
 
 namespace YzNgin.Demo;
 
-internal class Client : IYzClient
+public class Client : IYzClient
 {
     private Socket sock;
 
@@ -14,8 +14,9 @@ internal class Client : IYzClient
         sock = socket;
     }
 
-    public Task<object?> ReceiveAsync(Func<Memory<byte>, ValueTask<int>> write)
+    public async Task<object?> ReceiveAsync(Func<Memory<byte>, ValueTask<int>> write)
     {
-        throw new NotImplementedException();
+        await Task.Yield();
+        return null;
     }
 }
